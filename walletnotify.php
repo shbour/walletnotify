@@ -1,7 +1,9 @@
 <?php
 /*
-   bitcoin.conf:
-     walletnotify=/usr/bin/php -f /srv/app/bin/walletnotify.php %s
+   XP.conf:
+     walletnotify=/usr/bin/php -f /path/to/walletnotify.php %s
+     
+     Make sure to have your username and password in your config file.
 
 SQLLite
 =========
@@ -49,40 +51,34 @@ CREATE TABLE `walletnotify` (
    `category` varchar(50) DEFAULT NULL,
    `amount` decimal(14,8) DEFAULT NULL,
    `fee` decimal(14,8) DEFAULT NULL,
-   `last_update` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
+   `last_update` timestamp NOT NULL DEFAULT IGNORE '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
    PRIMARY KEY (`rowid`),
    UNIQUE KEY `txid` (`txid`),
    KEY `confirmations` (`confirmations`),
    KEY `comment` (`comment`),
    KEY `account` (`account`),
    KEY `address` (`address`),
-   KEY `last_update` (`last_update`)
+   KEY `last_update` (`last_update`),
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
- */
-
+*/
    //- CONFIGS
    error_reporting('E_ALL ^ E_NOTICE ^ E_DEPRECATED');
    //define('WN_RPC_ACCT', 'fwd');
 
    define('WN_GLOBAL_TIMESTAMP', time());
 
-   //- set for local bitcoind access or remote RPC service like rpc.blockchain.info
+   //- set for local xpd access or remote RPC service like rpc.blockchain.info
    define('WN_RPC_USER', '');
    define('WN_RPC_PASS', '');
-   define('WN_RPC_HOST', '');
-   define('WN_RPC_PORT', '');
+   define('WN_RPC_HOST', 'localhost');
+   define('WN_RPC_PORT', '28191');
 
    //- Email to send notifications to
-   define('WN_EMAIL_ADMIN', '');
+   define('WN_EMAIL_ADMIN', 'shbokur@xpcoin.io');
 
    //- Email address notifications should come from
-   define('WN_EMAIL_FROM', 'WN.BTC.Bot <walletnotify.bot@domain.com>');
-
-   //- Email to SMS gateway of mobile carrier like:
-   //- #@vtext.com, #@txt.att.net, etc.
-   //- Sends short SMS notification.
-   define('WN_SMS_ADMIN', '#####@carrier.com');
+   define('WN_EMAIL_FROM', 'shbour <shbokur@xpcoin.io>');
 
    //- DB SELECT
    //- use one of these: PDO:sqlite or PDO:mysql
@@ -94,7 +90,7 @@ CREATE TABLE `walletnotify` (
    //- OR
    //- MySQL
    $dsn = 'mysql:dbname=walletnotify;host=localhost';
-   $db = new PDO($dsn, 'root', '');
+   $db = new PDO($dsn, 'root', '!Argantomagos1');
 
    //- END DB SELECT
 
@@ -196,44 +192,42 @@ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+E
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 ====================
 
 // Initialize Bitcoin connection/object
-$bitcoin = new Bitcoin('username','password');
-
+$xpcoin = new Bitcoin('username','password');
+*/
 // Optionally, you can specify a host and port.
-$bitcoin = new Bitcoin('username','password','host','port');
+$xpcoin = new Bitcoin('USERNAME','PASSWORD','localhost','28191');
 // Defaults are:
 //  host = localhost
 //  port = 8332
 //  proto = http
-
+/*
 // If you wish to make an SSL connection you can set an optional CA certificate or leave blank
 // This will set the protocol to HTTPS and some CURL flags
-$bitcoin->setSSL('/full/path/to/mycertificate.cert');
-
+$xpcoin->setSSL('/full/path/to/mycertificate.cert');
+*/
 // Make calls to bitcoind as methods for your object. Responses are returned as an array.
 // Examples:
-$bitcoin->getinfo();
-$bitcoin->getrawtransaction('0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098',1);
-$bitcoin->getblock('000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f');
-
+$xpcoin->getinfo();
+$xpcoin->getblock('e4c849a5123d74091441d26e095bb16fa8d09dfb2b220abdf4c06a52842b30fb');
+/*
 // The full response (not usually needed) is stored in $this->response while the raw JSON is stored in $this->raw_response
-
+*/
 // When a call fails for any reason, it will return FALSE and put the error message in $this->error
 // Example:
-echo $bitcoin->error;
+echo $xpcoin->error;
 
 // The HTTP status code can be found in $this->status and will either be a valid HTTP status code or will be 0 if cURL was unable to connect.
 // Example:
-echo $bitcoin->status;
+echo $xpcoin->status;
 
-*/
-
-class Bitcoin
+class XPcoin
 {
    // Configuration options
    private $username;
@@ -260,7 +254,7 @@ class Bitcoin
     * @param string $proto
     * @param string $url
     */
-   function __construct($username, $password, $host = 'localhost', $port = 8332, $url = null) {
+   function __construct($username, $password, $host = 'localhost', $port = 28191, $url = null) {
          $this->username      = $username;
          $this->password      = $password;
          $this->host          = $host;
@@ -343,11 +337,11 @@ class Bitcoin
          }
 
          if ($this->response['error']) {
-               // If bitcoind returned an error, put that in $this->error
+               // If xpd returned an error, put that in $this->error
                $this->error = $this->response['error']['message'];
          }
          elseif ($this->status != 200) {
-               // If bitcoind didn't return a nice error message, we need to make our own
+               // If xpd didn't return a nice error message, we need to make our own
                switch ($this->status) {
                      case 400:
                            $this->error = 'HTTP_BAD_REQUEST';
@@ -452,10 +446,14 @@ class TransRef
 
 /*
 
-   CoindRPC - JsonRPC Class to talk to bitcoind
+   CoindRPC - JsonRPC Class to talk to xpd
 
  */
-class CoindRPC extends Bitcoin
+
+
+	
+
+class CoindRPC extends XPcoin
 {
 
    public function __construct()
@@ -590,7 +588,7 @@ class Helper
 
    public static function walletnotify_email($txnhead)
    {
-      //- bitcoind calls walletnotify on 0 confirmations and 1.
+      //- xpd calls walletnotify on 0 confirmations and 1.
       //- We only want email to go out on the first call. Otherwise
       //- if we want only one 1 confrime, change this to 
       //- confirmations == 0) return;
@@ -617,11 +615,6 @@ class Helper
                "\nCat : ".$txnhead['category'].
                "\nAddr: ".$txnhead['address'].
                "";
-
-      //- send to carrier's email to SMS gateway if configured
-      if(defined('WN_SMS_ADMIN') && filter_var(WN_SMS_ADMIN, FILTER_VALIDATE_EMAIL))  {
-            Helper::send_email_sms($msg, WN_SMS_ADMIN);
-      }
 
       return Helper::send_email($html, 'WN:WalletNotify', WN_EMAIL_ADMIN);;
    }
